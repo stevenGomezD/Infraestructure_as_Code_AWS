@@ -1,5 +1,110 @@
-VPC
-Subnet private
-Subnet public
-Internet Gateway
-Route Table
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template to provision of VPC, Subnet Public, Subnet Private, Internet Gateway and Route Table
+
+
+Parameters:
+  pVcpCidr:
+    Description: CIDR block for the VPC
+    Type: String
+
+  pPrivateSubnetCidr:
+    Description: CIDR block for the VPC
+    Type: String
+
+  pPublicSubnetCidr:
+    Description: CIDR block for the VPC
+    Type: String
+
+  pAvailabilityZone:
+    Description: AZ for the subnets
+    Type: String
+
+
+Resources:
+  rVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref pVcpCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: VPC
+
+  rPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAvailabilityZone
+      VpcId: !Ref rVPC
+      CidrBlock: !Ref pPrivateSubnetCidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+
+  rPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref pAvailabilityZone
+      VpcId: !Ref rVPC
+      CidrBlock: !Ref pPublicSubnetCidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+
+  rInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: keyname
+          Value: value
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: vpc-id
+      InternetGatewayId: !Ref rInternetGateway
+
+  rPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: vpc-id
+      Tags:
+        - Key: keyname
+          Value: value
+  
+  rPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: vpc-id
+      Tags:
+        - Key: keyname
+          Value: value
+
+  rPrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: rtable-id
+      DestinationCidrBlock: --.--.--.--/--
+      GatewayId: gataway-id
+
+  rPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: rtable-id
+      DestinationCidrBlock: --.--.--.--/--
+      GatewayId: gataway-id
+
+  rPrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: subnet-id
+      RouteTableId: rtable-id
+
+  rPublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: subnet-id
+      RouteTableId: rtable-id
+
+Outputs:
