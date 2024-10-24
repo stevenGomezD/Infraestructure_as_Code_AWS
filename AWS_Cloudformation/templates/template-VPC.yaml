@@ -1,110 +1,151 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: Template to provision of VPC, Subnet Public, Subnet Private, Internet Gateway and Route Table
-
-
-Parameters:
-  pVcpCidr:
-    Description: CIDR block for the VPC
-    Type: String
-
-  pPrivateSubnetCidr:
-    Description: CIDR block for the VPC
-    Type: String
-
-  pPublicSubnetCidr:
-    Description: CIDR block for the VPC
-    Type: String
-
-  pAvailabilityZone:
-    Description: AZ for the subnets
-    Type: String
-
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a VPC, Subnets, and Route Tables
 
 Resources:
-  rVPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !Ref pVcpCidr
+  # VPC
+  rMyVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties: 
+      CidrBlock: 10.0.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: VPC
+          Value: AWS_VPC
 
-  rPrivateSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !Ref pAvailabilityZone
-      VpcId: !Ref rVPC
-      CidrBlock: !Ref pPrivateSubnetCidr
-      MapPublicIpOnLaunch: false
-      Tags:
-        - Key: Name
-          Value: PrivateSubnet
-
-  rPublicSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !Ref pAvailabilityZone
-      VpcId: !Ref rVPC
-      CidrBlock: !Ref pPublicSubnetCidr
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: PublicSubnet
-
+  # Internet Gateway
   rInternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties:
-      Tags:
-        - Key: keyname
-          Value: value
+    Type: 'AWS::EC2::InternetGateway'
+  
   AttachGateway:
-    Type: AWS::EC2::VPCGatewayAttachment
+    Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
-      VpcId: vpc-id
+      VpcId: !Ref rMyVPC
       InternetGatewayId: !Ref rInternetGateway
 
-  rPrivateRouteTable:
-    Type: AWS::EC2::RouteTable
+  # Public Subnet 1
+  rPublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
     Properties:
-      VpcId: vpc-id
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
-        - Key: keyname
-          Value: value
-  
+        - Key: Name
+          Value: rPublicSubnet1
+
+  # Public Subnet 2 (for high availability in another AZ)
+  rPublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: rPublicSubnet2
+
+  # Private Subnet 1
+  rPrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: rPrivateSubnet1
+
+  # Private Subnet 2
+  rPrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: rPrivateSubnet2
+
+  # Public Route Table
   rPublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: vpc-id
+    Type: 'AWS::EC2::RouteTable'
+    Properties: 
+      VpcId: !Ref rMyVPC
       Tags:
-        - Key: keyname
-          Value: value
+        - Key: Name
+          Value: PublicRouteTable
 
-  rPrivateRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: rtable-id
-      DestinationCidrBlock: --.--.--.--/--
-      GatewayId: gataway-id
-
+  # Route for Public Subnets to Access Internet
   rPublicRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: rtable-id
-      DestinationCidrBlock: --.--.--.--/--
-      GatewayId: gataway-id
+    Type: 'AWS::EC2::Route'
+    Properties: 
+      RouteTableId: !Ref rPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
 
-  rPrivateSubnetRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
+  # Associate Public Subnets with Route Table
+  rPublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: subnet-id
-      RouteTableId: rtable-id
+      SubnetId: !Ref rPublicSubnet1
+      RouteTableId: !Ref rPublicRouteTable
 
-  rPublicSubnetRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
+  rPublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: subnet-id
-      RouteTableId: rtable-id
+      SubnetId: !Ref rPublicSubnet2
+      RouteTableId: !Ref rPublicRouteTable
+
+  # Private Route Table (no Internet access)
+  rPrivateRouteTable1:
+    Type: 'AWS::EC2::RouteTable'
+    Properties: 
+      VpcId: !Ref rMyVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable1
+
+  rPrivateSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rPrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable1
+
+  # Private Route Table 2 for another AZ
+  rPrivateRouteTable2:
+    Type: 'AWS::EC2::RouteTable'
+    Properties: 
+      VpcId: !Ref rMyVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable2
+
+  rPrivateSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rPrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable2
 
 Outputs:
+  VPCId:
+    Description: "VPC ID"
+    Value: !Ref rMyVPC
+
+  rPublicSubnet1Id:
+    Description: "Public Subnet 1 ID"
+    Value: !Ref rPublicSubnet1
+
+  rPublicSubnet2Id:
+    Description: "Public Subnet 2 ID"
+    Value: !Ref rPublicSubnet2
+
+  rPrivateSubnet1Id:
+    Description: "Private Subnet 1 ID"
+    Value: !Ref rPrivateSubnet1
+
+  rPrivateSubnet2Id:
+    Description: "Private Subnet 2 ID"
+    Value: !Ref rPrivateSubnet2
