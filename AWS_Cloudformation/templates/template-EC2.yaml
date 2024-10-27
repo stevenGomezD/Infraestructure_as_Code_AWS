@@ -22,9 +22,10 @@ Parameters:
       - m5.large
 
 Resources:
-  EC2InstanceRole:
+  rEC2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: IAM_Role_InstanceProfile
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -32,7 +33,6 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
-      Path: /
       Policies:
         - PolicyName: EC2ServicePolicy
           PolicyDocument:
@@ -53,32 +53,35 @@ Resources:
                 Action:
                   - lambda:InvokeFunction
                 Resource: "*"
+    Tags:
+      - Key: Environment
+        Value: dev
 
-  EC2InstanceProfile:
+  rEC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      Path: /
       Roles:
-        - !Ref EC2InstanceRole
+        - !Ref rEC2InstanceRole
 
-  ApplicationLoadBalancer:
+  rApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Sub "${AWS::StackName}-ALB"
+      Name: ApplicationLoadBalancer
       Subnets:
-        - !Ref PublicSubnet
+        - !ImportValue oPublicSubnet1Id
+        - !ImportValue oPublicSubnet2Id
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
           Value: '60'
       SecurityGroups:
-        - !Ref ALBSecurityGroup
+        - !Ref rALBSecurityGroup
 
-  ALBSecurityGroup:
+  rALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for ALB
-      VpcId: !Ref VPC
+      VpcId: !ImportValue oVPCId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -90,26 +93,26 @@ Resources:
           ToPort: 0
           CidrIp: 0.0.0.0/0
 
-  LaunchTemplate:
+  rLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: !Ref AMIId
-        InstanceType: !Ref InstanceType
+        ImageId: !Ref pAMIId
+        InstanceType: !Ref pInstanceType
         IamInstanceProfile:
-          Arn: !Ref EC2InstanceProfile
+          Arn: !Ref rEC2InstanceProfile
         NetworkInterfaces:
           - AssociatePublicIpAddress: true
             DeviceIndex: 0
             Groups:
-              - !Ref EC2InstanceSecurityGroup
-      LaunchTemplateName: !Sub "${AWS::StackName}-LaunchTemplate"
+              - !Ref rEC2InstanceSecurityGroup
+      LaunchTemplateName: LaunchTemplateAutoscalingInstances
 
-  EC2InstanceSecurityGroup:
+  rEC2InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for EC2 instances in ASG
-      VpcId: !Ref VPC
+      VpcId: !ImportValue oVPCId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -121,24 +124,27 @@ Resources:
           ToPort: 0
           CidrIp: 0.0.0.0/0
 
-  AutoScalingGroup:
+  rAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-        - !Ref PrivateSubnet
+        - !ImportValue oPrivateSubnet1Id
+        - !ImportValue oPrivateSubnet2Id
+        - !ImportValue oPublicSubnet1Id
+        - !ImportValue oPublicSubnet2Id
       LaunchTemplate:
-        LaunchTemplateId: !Ref LaunchTemplate
-        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+        LaunchTemplateId: !Ref rLaunchTemplate
+        Version: !GetAtt rLaunchTemplate.LatestVersionNumber
       MinSize: "1"
       MaxSize: "3"
       DesiredCapacity: "2"
       TargetGroupARNs:
-        - !Ref TargetGroup
+        - !Ref rTargetGroup
 
-  TargetGroup:
+  rTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !ImportValue oVPCId
       Port: 80
       Protocol: HTTP
       HealthCheckPath: /
@@ -147,10 +153,10 @@ Resources:
       Matcher:
         HttpCode: 200
       TargetType: instance
-      Name: !Sub "${AWS::StackName}-TargetGroup"
+      Name: ElasticLoadBalancingTargetGroup
 
 Outputs:
-  LoadBalancerDNSName:
+  oLoadBalancerDNSName:
     Description: DNS Name of the ALB
-    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Value: !GetAtt rApplicationLoadBalancer.DNSName
 

@@ -144,22 +144,22 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable2
 
 Outputs:
-  VPCId:
+  oVPCId:
     Description: "VPC ID"
     Value: !Ref rMyVPC
 
-  rPublicSubnet1Id:
+  oPublicSubnet1Id:
     Description: "Public Subnet 1 ID"
     Value: !Ref rPublicSubnet1
 
-  rPublicSubnet2Id:
+  oPublicSubnet2Id:
     Description: "Public Subnet 2 ID"
     Value: !Ref rPublicSubnet2
 
-  rPrivateSubnet1Id:
+  oPrivateSubnet1Id:
     Description: "Private Subnet 1 ID"
     Value: !Ref rPrivateSubnet1
 
-  rPrivateSubnet2Id:
+  oPrivateSubnet2Id:
     Description: "Private Subnet 2 ID"
     Value: !Ref rPrivateSubnet2
