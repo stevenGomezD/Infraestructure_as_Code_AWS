@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: CloudFormation template to create a VPC, Subnets, and Route Tables
 
+Parameters:
+  pRegion:
+    Description: AWS Region
+    Type: String
+
 Resources:
   # VPC
   rMyVPC:
@@ -12,10 +17,18 @@ Resources:
       Tags:
         - Key: Name
           Value: AWS_VPC
+        - Key: Environment
+          Value: dev
+        - Key: Owner
+          Value: Steven Gomez
 
   # Internet Gateway
   rInternetGateway:
     Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InternetGateway
   
   AttachGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment'
@@ -30,22 +43,22 @@ Resources:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.1.0/24
       MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      AvailabilityZone: !Select [ 0, !GetAZs !Ref pRegion ]
       Tags:
         - Key: Name
-          Value: rPublicSubnet1
+          Value: PublicSubnet1
 
-  # Public Subnet 2 (for high availability in another AZ)
+  # Public Subnet 2 
   rPublicSubnet2:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.2.0/24
       MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      AvailabilityZone: !Select [ 1, !GetAZs !Ref pRegion ]
       Tags:
         - Key: Name
-          Value: rPublicSubnet2
+          Value: PublicSubnet2
 
   # Private Subnet 1
   rPrivateSubnet1:
@@ -53,10 +66,10 @@ Resources:
     Properties:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.3.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      AvailabilityZone: !Select [ 0, !GetAZs !Ref pRegion ]
       Tags:
         - Key: Name
-          Value: rPrivateSubnet1
+          Value: PrivateSubnet1
 
   # Private Subnet 2
   rPrivateSubnet2:
@@ -64,10 +77,10 @@ Resources:
     Properties:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.4.0/24
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      AvailabilityZone: !Select [ 1, !GetAZs !Ref pRegion ]
       Tags:
         - Key: Name
-          Value: rPrivateSubnet2
+          Value: PrivateSubnet2
 
   # Public Route Table
   rPublicRouteTable:
