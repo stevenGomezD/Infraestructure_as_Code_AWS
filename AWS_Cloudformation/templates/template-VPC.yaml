@@ -3,8 +3,9 @@ Description: CloudFormation template to create a VPC, Subnets, and Route Tables
 
 Parameters:
   pRegion:
-    Description: AWS Region
     Type: String
+    Description: AWS Region
+    
 
 Resources:
   # VPC

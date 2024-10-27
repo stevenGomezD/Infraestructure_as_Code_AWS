@@ -1,4 +1,156 @@
-EC2 
-ELB
-ASG
-SG
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a Instance Profile, EC2 Instances, Security Groups and Load Balancer.
+
+Parameters:
+  pRegion:
+    Type: String
+    Description: AWS Region
+    
+  pAMIId:
+    Type: String
+    Description: Amazon Machine Image ID 
+    
+  pInstanceType:
+    Type: String
+    Default: t2.micro
+    Description: EC2 Instance Type 
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+      - m5.large
+
+Resources:
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: EC2ServicePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: arn:aws:s3:::*
+              - Effect: Allow
+                Action:
+                  - rds:DescribeDBInstances
+                  - rds:ListTagsForResource
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2InstanceRole
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${AWS::StackName}-ALB"
+      Subnets:
+        - !Ref PublicSubnet
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ALB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref AMIId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Arn: !Ref EC2InstanceProfile
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: true
+            DeviceIndex: 0
+            Groups:
+              - !Ref EC2InstanceSecurityGroup
+      LaunchTemplateName: !Sub "${AWS::StackName}-LaunchTemplate"
+
+  EC2InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for EC2 instances in ASG
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MinSize: "1"
+      MaxSize: "3"
+      DesiredCapacity: "2"
+      TargetGroupARNs:
+        - !Ref TargetGroup
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VPC
+      Port: 80
+      Protocol: HTTP
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: traffic-port
+      Matcher:
+        HttpCode: 200
+      TargetType: instance
+      Name: !Sub "${AWS::StackName}-TargetGroup"
+
+Outputs:
+  LoadBalancerDNSName:
+    Description: DNS Name of the ALB
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+
