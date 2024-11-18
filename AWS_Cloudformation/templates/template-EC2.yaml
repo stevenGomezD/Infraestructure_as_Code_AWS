@@ -160,3 +160,7 @@ Outputs:
     Description: DNS Name of the ALB
     Value: !GetAtt rApplicationLoadBalancer.DNSName
 
+  oInstanceProfile:
+    Description: Role of EC2 Instance
+    Value: !GetAtt rEC2InstanceRole.Arn
+
