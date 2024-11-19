@@ -1,2 +1,95 @@
-RDS
-SG
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template to deploy RDS Database
+
+Parameters:
+  pDBInstanceIdentifier:
+    Type: String
+    Default: rds-instance
+    Description: Unique identifier of the RDS instance.
+  
+  pDBName:
+    Type: String
+    Default: DatabaseNameRDS
+    Description: Database name.
+  
+  pDBUsername:
+    Type: String
+    Default: admin
+    Description: Name of admin user database.
+  
+  pDBPassword:
+    Type: String
+    NoEcho: true
+    Description: Password of admin user.
+  
+  pDBInstanceClass:
+    Type: String
+    Default: db.t3.small
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+      - db.t3.large
+    Description: Instance type RDS.
+  
+  pAllocatedStorage:
+    Type: Number
+    Default: 20
+    MinValue: 20
+    MaxValue: 1000
+    Description: Storage (GB).
+  
+  pSubnetGroupName:
+    Type: String
+    Description: Name of subnets group for RDS.
+
+Resources:
+  rRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access to database from instances.
+      VpcId: !ImportValue oVPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !ImportValue oEC2InstanceSecurityGroup
+      Tags:
+        - Key: Name
+          Value: RDS-SecurityGroup
+
+  rRDSDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private Subnets to RDS.
+      SubnetIds:
+        - !ImportValue oPrivateSubnet1Id
+        - !ImportValue oPrivateSubnet2Id
+
+  rRDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Ref pDBInstanceIdentifier
+      AllocatedStorage: !Ref pAllocatedStorage
+      DBInstanceClass: !Ref pDBInstanceClass
+      Engine: mysql
+      EngineVersion: "8.0"
+      MasterUsername: !Ref pDBUsername
+      MasterUserPassword: !Ref pDBPassword
+      DBName: !Ref pDBName
+      VPCSecurityGroups: !Ref rRDSSecurityGroup
+      DBSubnetGroupName: !Ref RDSDBSubnetGroup
+      MultiAZ: true
+      StorageEncrypted: true
+      DeletionProtection: true
+      BackupRetentionPeriod: 7
+      PubliclyAccessible: false
+
+Outputs:
+  oRDSInstanceEndpoint:
+    Description: Endpoint of database RDS.
+    Value: !GetAtt rRDSInstance.Endpoint.Address
+
+  oRDSInstanceArn:
+    Description: ARN of instance RDS.
+    Value: !GetAtt rRDSInstance.Arn

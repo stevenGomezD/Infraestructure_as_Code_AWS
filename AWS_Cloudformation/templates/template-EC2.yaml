@@ -164,3 +164,7 @@ Outputs:
     Description: Role of EC2 Instance
     Value: !GetAtt rEC2InstanceRole.Arn
 
+  oEC2InstanceSecurityGroup:
+    Description: Security Group of instances
+    Value: !GetAtt rEC2InstanceSecurityGroup.GroupId
+
