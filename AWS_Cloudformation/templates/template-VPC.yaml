@@ -4,6 +4,7 @@ Description: CloudFormation template to create a VPC, Subnets, and Route Tables
 Parameters:
   pRegion:
     Type: String
+    Default: us-east-1
     Description: AWS Region
     
 
@@ -31,7 +32,7 @@ Resources:
         - Key: Name
           Value: InternetGateway
   
-  AttachGateway:
+  rAttachGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
       VpcId: !Ref rMyVPC
@@ -44,7 +45,7 @@ Resources:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.1.0/24
       MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [ 0, !GetAZs !Ref pRegion ]
+      AvailabilityZone: us-east-1a
       Tags:
         - Key: Name
           Value: PublicSubnet1
@@ -56,7 +57,7 @@ Resources:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.2.0/24
       MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [ 1, !GetAZs !Ref pRegion ]
+      AvailabilityZone: us-east-1b
       Tags:
         - Key: Name
           Value: PublicSubnet2
@@ -67,7 +68,7 @@ Resources:
     Properties:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.3.0/24
-      AvailabilityZone: !Select [ 0, !GetAZs !Ref pRegion ]
+      AvailabilityZone: us-east-1a
       Tags:
         - Key: Name
           Value: PrivateSubnet1
@@ -78,7 +79,7 @@ Resources:
     Properties:
       VpcId: !Ref rMyVPC
       CidrBlock: 10.0.4.0/24
-      AvailabilityZone: !Select [ 1, !GetAZs !Ref pRegion ]
+      AvailabilityZone: us-east-1b
       Tags:
         - Key: Name
           Value: PrivateSubnet2
@@ -98,7 +99,7 @@ Resources:
     Properties: 
       RouteTableId: !Ref rPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
+      GatewayId: !Ref rInternetGateway
 
   # Associate Public Subnets with Route Table
   rPublicSubnet1RouteTableAssociation:
@@ -120,13 +121,13 @@ Resources:
       VpcId: !Ref rMyVPC
       Tags:
         - Key: Name
-          Value: PrivateRouteTable1
+          Value: rPrivateRouteTable1
 
   rPrivateSubnet1RouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       SubnetId: !Ref rPrivateSubnet1
-      RouteTableId: !Ref PrivateRouteTable1
+      RouteTableId: !Ref rPrivateRouteTable1
 
   # Private Route Table 2 for another AZ
   rPrivateRouteTable2:
@@ -141,7 +142,7 @@ Resources:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       SubnetId: !Ref rPrivateSubnet2
-      RouteTableId: !Ref PrivateRouteTable2
+      RouteTableId: !Ref rPrivateRouteTable2
 
 Outputs:
   oVPCId:
