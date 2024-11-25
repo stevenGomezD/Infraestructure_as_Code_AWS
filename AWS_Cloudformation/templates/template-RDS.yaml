@@ -78,7 +78,7 @@ Resources:
       MasterUserPassword: !Ref pDBPassword
       DBName: !Ref pDBName
       VPCSecurityGroups: !Ref rRDSSecurityGroup
-      DBSubnetGroupName: !Ref RDSDBSubnetGroup
+      DBSubnetGroupName: !Ref rRDSDBSubnetGroup
       MultiAZ: true
       StorageEncrypted: true
       DeletionProtection: true

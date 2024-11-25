@@ -53,9 +53,9 @@ Resources:
                 Action:
                   - lambda:InvokeFunction
                 Resource: "*"
-    Tags:
-      - Key: Environment
-        Value: dev
+      Tags:
+        - Key: Environment
+          Value: dev
 
   rEC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -117,7 +117,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref ALBSecurityGroup
+          SourceSecurityGroupId: !Ref rALBSecurityGroup
       SecurityGroupEgress:
         - IpProtocol: -1
           FromPort: 0

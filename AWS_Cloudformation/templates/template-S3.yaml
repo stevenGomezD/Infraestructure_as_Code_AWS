@@ -5,11 +5,10 @@ Parameters:
   pBucketName:
     Type: String
     Description: Name of bucket S3
-    Default: project-name-bucket-s3
+    
   pKmsKeyAlias:
     Type: String
     Description: Alias para la clave KMS.
-    Default: alias/bucket-s3-key
 
 Resources:
   rKmsKey:
