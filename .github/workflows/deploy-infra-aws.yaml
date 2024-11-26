@@ -69,4 +69,5 @@ jobs:
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/${{ matrix.template.name }} \
             --stack-name ${{ matrix.template.stack }} \
-            --parameter-overrides file://AWS_Cloudformation/parameters/${{ matrix.template.params }}
+            --parameter-overrides file://AWS_Cloudformation/parameters/${{ matrix.template.params }} \
+            --capabilities CAPABILITY_NAMED_IAM

@@ -21,7 +21,7 @@
     },
     {
         "ParameterKey": "pAllocatedStorage",
-        "ParameterValue": 20
+        "ParameterValue": "20"
     },
     {
         "ParameterKey": "pSubnetGroupName",
