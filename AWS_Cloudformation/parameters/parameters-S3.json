@@ -1,4 +1,10 @@
-{
-    "pBucketName": "stevengomez-project-bucket-s3",
-    "pKmsKeyAlias": "KMS_Key_BucketS3"
-}
+[
+    {
+        "ParameterKey": "pBucketName",
+        "ParameterValue": "stevengomez-project-bucket-s3"
+    },
+    {
+        "ParameterKey": "pKmsKeyAlias",
+        "ParameterValue": "KMS_Key_BucketS3"
+    }
+]
