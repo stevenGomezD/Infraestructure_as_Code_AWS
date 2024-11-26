@@ -7,6 +7,12 @@ on:
       - task/*
 
 jobs:
+  # Stage: Setup AWS account
+  setup-account:
+    uses: ./.github/workflows/setup-aws-account.yaml
+    with:
+      region: us-east-1
+
   # Stage: Validate templates
   validate-templates:
     name: Validate templates
@@ -18,9 +24,6 @@ jobs:
           - { name: template-EC2.yaml, params: parameters-EC2.json }
           - { name: template-RDS.yaml, params: parameters-RDS.json }
           - { name: template-S3.yaml, params: parameters-S3.json }
-    uses: ./.github/workflows/setup-aws-account.yaml
-    with:
-      region: us-east-1
     
     steps:
       - name: Validate CloudFormation Template
@@ -39,9 +42,6 @@ jobs:
           - { name: template-EC2.yaml, params: parameters-EC2.json, stack: Lab-EC2-Stack }
           - { name: template-RDS.yaml, params: parameters-RDS.json, stack: Lab-RDS-Stack }
           - { name: template-S3.yaml, params: parameters-S3.json, stack: Lab-S3-Stack }
-    uses: ./.github/workflows/setup-aws-account.yaml
-    with:
-      region: us-east-1
 
     steps:
       - name: Deploy CloudFormation Template
