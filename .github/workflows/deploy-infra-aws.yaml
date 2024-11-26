@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - task/*
 
 jobs:
   # Stage 1: Setup connection with AWS Account
