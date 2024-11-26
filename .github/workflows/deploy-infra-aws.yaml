@@ -1,4 +1,4 @@
-name: Deploy AWS Infraestructure
+name: Deploy AWS Infrastructure
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
         run: |
           aws cloudformation validate-template --template-body file://AWS_Cloudformation/templates/${{ matrix.template.name }} --region us-east-1
 
-  # Stage: Deploy of templates
+  # Stage: Deploy templates
   deploy-templates:
     name: Deploy templates
     needs: validate-templates
