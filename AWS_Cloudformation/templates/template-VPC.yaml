@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a VPC, Subnets, and Route Tables
+
+Parameters:
+  pRegion:
+    Type: String
+    Default: us-east-1
+    Description: AWS Region
+    
+
+Resources:
+  # VPC
+  rMyVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties: 
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: AWS_VPC
+        - Key: Environment
+          Value: dev
+        - Key: Owner
+          Value: Steven Gomez
+
+  # Internet Gateway
+  rInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InternetGateway
+  
+  rAttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref rMyVPC
+      InternetGatewayId: !Ref rInternetGateway
+
+  # Public Subnet 1
+  rPublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: us-east-1a
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1
+
+  # Public Subnet 2 
+  rPublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: us-east-1b
+      Tags:
+        - Key: Name
+          Value: PublicSubnet2
+
+  # Private Subnet 1
+  rPrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: us-east-1a
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet1
+
+  # Private Subnet 2
+  rPrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref rMyVPC
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: us-east-1b
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet2
+
+  # Public Route Table
+  rPublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties: 
+      VpcId: !Ref rMyVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  # Route for Public Subnets to Access Internet
+  rPublicRoute:
+    Type: 'AWS::EC2::Route'
+    Properties: 
+      RouteTableId: !Ref rPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref rInternetGateway
+
+  # Associate Public Subnets with Route Table
+  rPublicSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rPublicSubnet1
+      RouteTableId: !Ref rPublicRouteTable
+
+  rPublicSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rPublicSubnet2
+      RouteTableId: !Ref rPublicRouteTable
+
+  # Private Route Table (no Internet access)
+  rPrivateRouteTable1:
+    Type: 'AWS::EC2::RouteTable'
+    Properties: 
+      VpcId: !Ref rMyVPC
+      Tags:
+        - Key: Name
+          Value: rPrivateRouteTable1
+
+  rPrivateSubnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rPrivateSubnet1
+      RouteTableId: !Ref rPrivateRouteTable1
+
+  # Private Route Table 2 for another AZ
+  rPrivateRouteTable2:
+    Type: 'AWS::EC2::RouteTable'
+    Properties: 
+      VpcId: !Ref rMyVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable2
+
+  rPrivateSubnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rPrivateSubnet2
+      RouteTableId: !Ref rPrivateRouteTable2
+
+Outputs:
+  oVPCId:
+    Description: "VPC ID"
+    Value: !Ref rMyVPC
+
+  oPublicSubnet1Id:
+    Description: "Public Subnet 1 ID"
+    Value: !Ref rPublicSubnet1
+
+  oPublicSubnet2Id:
+    Description: "Public Subnet 2 ID"
+    Value: !Ref rPublicSubnet2
+
+  oPrivateSubnet1Id:
+    Description: "Private Subnet 1 ID"
+    Value: !Ref rPrivateSubnet1
+
+  oPrivateSubnet2Id:
+    Description: "Private Subnet 2 ID"
+    Value: !Ref rPrivateSubnet2

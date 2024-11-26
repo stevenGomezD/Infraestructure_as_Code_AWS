@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a Instance Profile, EC2 Instances, Security Groups and Load Balancer.
+
+Parameters:
+  pRegion:
+    Type: String
+    Description: AWS Region
+    
+  pAMIId:
+    Type: String
+    Description: Amazon Machine Image ID 
+    
+  pInstanceType:
+    Type: String
+    Default: t2.micro
+    Description: EC2 Instance Type 
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+      - m5.large
+
+Resources:
+  rEC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: IAM_Role_InstanceProfile
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EC2ServicePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: arn:aws:s3:::*
+              - Effect: Allow
+                Action:
+                  - rds:DescribeDBInstances
+                  - rds:ListTagsForResource
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*"
+      Tags:
+        - Key: Environment
+          Value: dev
+
+  rEC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref rEC2InstanceRole
+
+  rApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: ApplicationLoadBalancer
+      Subnets:
+        - !ImportValue oPublicSubnet1Id
+        - !ImportValue oPublicSubnet2Id
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+      SecurityGroups:
+        - !Ref rALBSecurityGroup
+
+  rALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ALB
+      VpcId: !ImportValue oVPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
+
+  rLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref pAMIId
+        InstanceType: !Ref pInstanceType
+        IamInstanceProfile:
+          Arn: !Ref rEC2InstanceProfile
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: true
+            DeviceIndex: 0
+            Groups:
+              - !Ref rEC2InstanceSecurityGroup
+      LaunchTemplateName: LaunchTemplateAutoscalingInstances
+
+  rEC2InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for EC2 instances in ASG
+      VpcId: !ImportValue oVPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref rALBSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 0
+          CidrIp: 0.0.0.0/0
+
+  rAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !ImportValue oPrivateSubnet1Id
+        - !ImportValue oPrivateSubnet2Id
+        - !ImportValue oPublicSubnet1Id
+        - !ImportValue oPublicSubnet2Id
+      LaunchTemplate:
+        LaunchTemplateId: !Ref rLaunchTemplate
+        Version: !GetAtt rLaunchTemplate.LatestVersionNumber
+      MinSize: "1"
+      MaxSize: "3"
+      DesiredCapacity: "2"
+      TargetGroupARNs:
+        - !Ref rTargetGroup
+
+  rTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !ImportValue oVPCId
+      Port: 80
+      Protocol: HTTP
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: traffic-port
+      Matcher:
+        HttpCode: 200
+      TargetType: instance
+      Name: ElasticLoadBalancingTargetGroup
+
+Outputs:
+  oLoadBalancerDNSName:
+    Description: DNS Name of the ALB
+    Value: !GetAtt rApplicationLoadBalancer.DNSName
+
+  oInstanceProfile:
+    Description: Role of EC2 Instance
+    Value: !GetAtt rEC2InstanceRole.Arn
+
+  oEC2InstanceSecurityGroup:
+    Description: Security Group of instances
+    Value: !GetAtt rEC2InstanceSecurityGroup.GroupId
+

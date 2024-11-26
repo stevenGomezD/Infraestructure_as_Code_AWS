@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create a Bucket S3 and KMS
+
+Parameters:
+  pBucketName:
+    Type: String
+    Description: Name of bucket S3
+    
+  pKmsKeyAlias:
+    Type: String
+    Description: Alias para la clave KMS.
+
+Resources:
+  rKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key to encrypt objects of bucket s3
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowRootAccess
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: AllowBucketAccess
+            Effect: Allow
+            Principal:
+              AWS: !ImportValue oInstanceProfile
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
+
+  MyKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref pKmsKeyAlias
+      TargetKeyId: !Ref rKmsKey
+
+  rS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref pBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref rKmsKey
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  rS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref rS3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyUnencryptedUploads
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:PutObject"
+            Resource: !Sub "${rS3Bucket.Arn}/*"
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": "aws:kms"
+

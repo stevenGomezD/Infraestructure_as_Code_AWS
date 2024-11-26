@@ -1,0 +1,4 @@
+{
+    "pBucketName": "stevengomez-project-bucket-s3",
+    "pKmsKeyAlias": "KMS_Key_BucketS3"
+}

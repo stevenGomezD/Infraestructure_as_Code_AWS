@@ -1,0 +1,9 @@
+{
+    "pDBInstanceIdentifier": "rds-instance-stevenGomez",
+    "pDBName": "stevenGomez-database",
+    "pDBUsername": "admin",
+    "pDBPassword": "{{DB_PASSWORD}}",
+    "pDBInstanceClass": "db.t3.small",
+    "pAllocatedStorage": 20,
+    "pSubnetGroupName": "rds-subnet-group"
+}
