@@ -7,26 +7,8 @@ on:
       - task/*
 
 jobs:
-  # Stage 1: Setup connection with AWS Account
-  setup-aws:
-    name: Setup AWS Account
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Check AWS Identity
-        run: aws sts get-caller-identity
-
-
-  # Stage 2: Validate templates
+  # Stage: Validate templates
   validate-templates:
     name: Validate templates
     needs: setup-aws
@@ -39,6 +21,11 @@ jobs:
           - { name: template-RDS.yaml, params: parameters-RDS.json }
           - { name: template-S3.yaml, params: parameters-S3.json }
     steps:
+      - name: Setup AWS Credentials
+        uses: ./.github/workflows/setup-aws-account.yml
+        with:
+          region: us-east-1
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -46,7 +33,7 @@ jobs:
         run: |
           aws cloudformation validate-template --template-body file://AWS_Cloudformation/templates/${{ matrix.template.name }} --region us-east-1
 
-  # Stage 3: Deploy of templates
+  # Stage: Deploy of templates
   deploy-templates:
     name: Deploy templates
     needs: validate-templates
@@ -59,6 +46,11 @@ jobs:
           - { name: template-RDS.yaml, params: parameters-RDS.json, stack: Lab-RDS-Stack }
           - { name: template-S3.yaml, params: parameters-S3.json, stack: Lab-S3-Stack }
     steps:
+      - name: Setup AWS Credentials
+        uses: ./.github/workflows/setup-aws-account.yml
+        with:
+          region: us-east-1
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
