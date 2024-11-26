@@ -39,7 +39,7 @@ jobs:
 
       - name: Validate CloudFormation Template
         run: |
-          aws cloudformation validate-template --template-body file://AWS_Cloudformation/templates/${{ matrix.template.name }}
+          aws cloudformation validate-template --template-body file://AWS_Cloudformation/templates/${{ matrix.template.name }} --region us-east-1
 
   # Stage 3: Deploy of templates
   deploy-templates:
