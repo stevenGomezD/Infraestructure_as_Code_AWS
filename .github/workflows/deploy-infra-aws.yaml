@@ -7,20 +7,6 @@ on:
       - task/*
 
 jobs:
-  # Stage: Setup AWS account
-  setup-account:
-    name: Setup AWS Account
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Verify AWS credentials
-        run: aws sts get-caller-identity
-
   # Stage: Validate templates
   validate-templates:
     name: Validate templates
@@ -32,8 +18,21 @@ jobs:
           - { name: template-EC2.yaml, params: parameters-EC2.json }
           - { name: template-RDS.yaml, params: parameters-RDS.json }
           - { name: template-S3.yaml, params: parameters-S3.json }
-    
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup AWS Account
+      - name: Setup AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Verify AWS credentials
+        run: aws sts get-caller-identity
+
       - name: Validate CloudFormation Template
         run: |
           aws cloudformation validate-template --template-body file://AWS_Cloudformation/templates/${{ matrix.template.name }} --region us-east-1
@@ -50,8 +49,21 @@ jobs:
           - { name: template-EC2.yaml, params: parameters-EC2.json, stack: Lab-EC2-Stack }
           - { name: template-RDS.yaml, params: parameters-RDS.json, stack: Lab-RDS-Stack }
           - { name: template-S3.yaml, params: parameters-S3.json, stack: Lab-S3-Stack }
-
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup AWS Account
+      - name: Setup AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Verify AWS credentials
+        run: aws sts get-caller-identity
+
       - name: Deploy CloudFormation Template
         run: |
           aws cloudformation deploy \
