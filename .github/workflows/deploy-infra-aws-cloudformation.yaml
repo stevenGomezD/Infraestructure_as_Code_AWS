@@ -68,7 +68,7 @@ jobs:
       - name: Replace AMI_ID in parameters-EC2.json
         run: |
           # Replace the value of AMI_ID in parameters-EC2.json with value of GitHub secrets
-          sed -i 's/"ParameterValue": "${{ secrets.AMI_ID }}"/"ParameterValue": "${{ secrets.AMI_ID }}"/g' parameters-EC2.json
+          sed -i 's/"ParameterValue": "${{ secrets.AMI_ID }}"/"ParameterValue": "${{ secrets.AMI_ID }}"/g' AWS_Cloudformation/parameters/parameters-EC2.json
 
       - name: Deploy CloudFormation Template EC2
         run: |
@@ -81,7 +81,7 @@ jobs:
       - name: Replace DB_PASSWORD in parameters-RDS.json
         run: |
           # Replace the value of DB_PASSWORD in parameters-RDS.json with value of GitHub secrets
-          sed -i 's/"ParameterValue": "${{ secrets.DB_PASSWORD }}"/"ParameterValue": "${{ secrets.DB_PASSWORD }}"/g' parameters-RDS.json
+          sed -i 's/"ParameterValue": "${{ secrets.DB_PASSWORD }}"/"ParameterValue": "${{ secrets.DB_PASSWORD }}"/g' AWS_Cloudformation/parameters/parameters-RDS.json
 
       - name: Deploy CloudFormation Template RDS
         run: |
