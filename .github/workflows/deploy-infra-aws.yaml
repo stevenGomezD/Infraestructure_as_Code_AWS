@@ -42,13 +42,7 @@ jobs:
     name: Deploy templates
     needs: validate-templates
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        template:
-          - { name: template-VPC.yaml, params: parameters-VPC.json, stack: Lab-VPC-Stack }
-          - { name: template-EC2.yaml, params: parameters-EC2.json, stack: Lab-EC2-Stack }
-          - { name: template-RDS.yaml, params: parameters-RDS.json, stack: Lab-RDS-Stack }
-          - { name: template-S3.yaml, params: parameters-S3.json, stack: Lab-S3-Stack }
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -64,10 +58,34 @@ jobs:
       - name: Verify AWS credentials
         run: aws sts get-caller-identity
 
-      - name: Deploy CloudFormation Template
+      - name: Deploy Template VPC
         run: |
           aws cloudformation deploy \
-            --template-file AWS_Cloudformation/templates/${{ matrix.template.name }} \
-            --stack-name ${{ matrix.template.stack }} \
-            --parameter-overrides file://AWS_Cloudformation/parameters/${{ matrix.template.params }} \
+            --template-file AWS_Cloudformation/templates/template-VPC.yaml \
+            --stack-name Lab-VPC-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-VCP.json \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy Template EC2
+        run: |
+          aws cloudformation deploy \
+            --template-file AWS_Cloudformation/templates/template-EC2.yaml \
+            --stack-name Lab-EC2-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-EC2.json \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy Template RDS
+        run: |
+          aws cloudformation deploy \
+            --template-file AWS_Cloudformation/templates/template-RDS.yaml \
+            --stack-name Lab-RDS-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-RDS.json \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy Template S3
+        run: |
+          aws cloudformation deploy \
+            --template-file AWS_Cloudformation/templates/template-S3.yaml \
+            --stack-name Lab-S3-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-S3.json \
             --capabilities CAPABILITY_NAMED_IAM
