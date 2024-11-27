@@ -63,7 +63,7 @@ jobs:
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/template-VPC.yaml \
             --stack-name Lab-VPC-Stack \
-            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-VCP.json \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-VPC.json \
             --capabilities CAPABILITY_NAMED_IAM
 
       - name: Deploy Template EC2
