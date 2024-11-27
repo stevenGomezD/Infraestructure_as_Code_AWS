@@ -71,7 +71,6 @@ jobs:
             --template-file AWS_Cloudformation/templates/template-EC2.yaml \
             --stack-name Lab-EC2-Stack \
             --parameter-overrides file://AWS_Cloudformation/parameters/parameters-EC2.json \
-              pAMIId=${{ secrets.AMI_ID }} \
             --capabilities CAPABILITY_NAMED_IAM
 
       - name: Deploy CloudFormation Template RDS
