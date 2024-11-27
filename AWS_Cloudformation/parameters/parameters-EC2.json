@@ -4,6 +4,10 @@
         "ParameterValue": "us-east-1"
     },
     {
+        "ParameterKey": "pAMIId",
+        "ParameterValue": "${{ secrets.AMI_ID }}"
+    },
+    {
         "ParameterKey": "pInstanceType",
         "ParameterValue": "t2.micro"
     }
