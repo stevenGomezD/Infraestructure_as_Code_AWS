@@ -89,7 +89,11 @@ Outputs:
   oRDSInstanceEndpoint:
     Description: Endpoint of database RDS.
     Value: !GetAtt rRDSInstance.Endpoint.Address
+    Export:
+      Name: oRDSInstanceEndpoint
 
   oRDSInstanceArn:
     Description: ARN of instance RDS.
     Value: !GetAtt rRDSInstance.Arn
+    Export:
+      Name: oRDSInstanceArn

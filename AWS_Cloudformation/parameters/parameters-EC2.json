@@ -1,5 +1,10 @@
-{
-    "pRegion": "us-east-1",
-    "pAMIId": "{{AMI_ID}}",
-    "pInstanceType": "t2.micro"
-}
+[
+    {
+        "ParameterKey": "pRegion",
+        "ParameterValue": "us-east-1"
+    },
+    {
+        "ParameterKey": "pInstanceType",
+        "ParameterValue": "t2.micro"
+    }
+]

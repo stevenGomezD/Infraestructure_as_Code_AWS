@@ -1,0 +1,92 @@
+name: Deploy AWS Infrastructure - Cloudformation
+
+on:
+  push:
+    branches:
+      - main
+      #- task/*
+
+jobs:
+  # Stage: Validate templates
+  validate-templates:
+    name: Validate templates
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        template:
+          - { name: template-VPC.yaml, params: parameters-VPC.json }
+          - { name: template-EC2.yaml, params: parameters-EC2.json }
+          - { name: template-RDS.yaml, params: parameters-RDS.json }
+          - { name: template-S3.yaml, params: parameters-S3.json }
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup AWS Account
+      - name: Setup AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Verify AWS credentials
+        run: aws sts get-caller-identity
+
+      - name: Validate CloudFormation Template
+        run: |
+          aws cloudformation validate-template --template-body file://AWS_Cloudformation/templates/${{ matrix.template.name }} --region us-east-1
+
+  # Stage: Deploy templates
+  deploy-templates:
+    name: Deploy templates
+    needs: validate-templates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup AWS Account
+      - name: Setup AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Verify AWS credentials
+        run: aws sts get-caller-identity
+
+      - name: Deploy CloudFormation Template VPC
+        run: |
+          aws cloudformation deploy \
+            --template-file AWS_Cloudformation/templates/template-VPC.yaml \
+            --stack-name Lab-VPC-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-VPC.json \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy CloudFormation Template EC2
+        run: |
+          aws cloudformation deploy \
+            --template-file AWS_Cloudformation/templates/template-EC2.yaml \
+            --stack-name Lab-EC2-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-EC2.json \
+              pAMIId=${{ secrets.AMI_ID }} \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy CloudFormation Template RDS
+        run: |
+          aws cloudformation deploy \
+            --template-file AWS_Cloudformation/templates/template-RDS.yaml \
+            --stack-name Lab-RDS-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-RDS.json \
+              pDBPassword=${{ secrets.DB_PASSWORD }} \
+            --capabilities CAPABILITY_NAMED_IAM
+
+      - name: Deploy CloudFormation Template S3
+        run: |
+          aws cloudformation deploy \
+            --template-file AWS_Cloudformation/templates/template-S3.yaml \
+            --stack-name Lab-S3-Stack \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-S3.json \
+            --capabilities CAPABILITY_NAMED_IAM

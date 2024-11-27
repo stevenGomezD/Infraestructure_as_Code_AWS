@@ -1,3 +1,6 @@
-{
-    "pRegion": "us-east-1"
-}
+[
+    {
+        "ParameterKey": "pRegion",
+        "ParameterValue": "us-east-1"
+    }
+]

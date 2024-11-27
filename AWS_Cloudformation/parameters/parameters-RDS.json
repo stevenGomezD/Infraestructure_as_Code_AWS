@@ -1,9 +1,26 @@
-{
-    "pDBInstanceIdentifier": "rds-instance-stevenGomez",
-    "pDBName": "stevenGomez-database",
-    "pDBUsername": "admin",
-    "pDBPassword": "{{DB_PASSWORD}}",
-    "pDBInstanceClass": "db.t3.small",
-    "pAllocatedStorage": 20,
-    "pSubnetGroupName": "rds-subnet-group"
-}
+[
+    {
+        "ParameterKey": "pDBInstanceIdentifier",
+        "ParameterValue": "rds-instance-stevenGomez"
+    },
+    {
+        "ParameterKey": "pDBName",
+        "ParameterValue": "stevenGomez-database"
+    },
+    {
+        "ParameterKey": "pDBUsername",
+        "ParameterValue": "admin"
+    },
+    {
+        "ParameterKey": "pDBInstanceClass",
+        "ParameterValue": "db.t3.small"
+    },
+    {
+        "ParameterKey": "pAllocatedStorage",
+        "ParameterValue": "20"
+    },
+    {
+        "ParameterKey": "pSubnetGroupName",
+        "ParameterValue": "rds-subnet-group"
+    }
+]
