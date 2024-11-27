@@ -62,7 +62,7 @@ jobs:
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/template-VPC.yaml \
             --stack-name Lab-VPC-Stack \
-            --parameters file://AWS_Cloudformation/parameters/parameters-VPC.json \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-VPC.json \
             --capabilities CAPABILITY_NAMED_IAM
 
       - name: Replace AMI_ID in parameters-EC2.json
@@ -79,7 +79,7 @@ jobs:
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/template-EC2.yaml \
             --stack-name Lab-EC2-Stack \
-            --parameters file://AWS_Cloudformation/parameters/parameters-EC2.json \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-EC2.json \
             --capabilities CAPABILITY_NAMED_IAM
         env:
           AMI_ID: ${{ secrets.AMI_ID }}
@@ -92,7 +92,7 @@ jobs:
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/template-RDS.yaml \
             --stack-name Lab-RDS-Stack \
-            --parameters file://AWS_Cloudformation/parameters/parameters-RDS.json \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-RDS.json \
             --capabilities CAPABILITY_NAMED_IAM
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -102,5 +102,5 @@ jobs:
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/template-S3.yaml \
             --stack-name Lab-S3-Stack \
-            --parameters file://AWS_Cloudformation/parameters/parameters-S3.json \
+            --parameter-overrides file://AWS_Cloudformation/parameters/parameters-S3.json \
             --capabilities CAPABILITY_NAMED_IAM
