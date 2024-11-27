@@ -159,12 +159,18 @@ Outputs:
   oLoadBalancerDNSName:
     Description: DNS Name of the ALB
     Value: !GetAtt rApplicationLoadBalancer.DNSName
+    Export:
+      Name: oLoadBalancerDNSName
 
   oInstanceProfile:
     Description: Role of EC2 Instance
     Value: !GetAtt rEC2InstanceRole.Arn
+    Export:
+      Name: oInstanceProfile
 
   oEC2InstanceSecurityGroup:
     Description: Security Group of instances
     Value: !GetAtt rEC2InstanceSecurityGroup.GroupId
+    Export:
+      Name: oEC2InstanceSecurityGroup
 
