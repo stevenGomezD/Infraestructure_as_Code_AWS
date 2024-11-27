@@ -12,10 +12,6 @@
         "ParameterValue": "admin"
     },
     {
-        "ParameterKey": "pDBPassword",
-        "ParameterValue": "{{DB_PASSWORD}}"
-    },
-    {
         "ParameterKey": "pDBInstanceClass",
         "ParameterValue": "db.t3.small"
     },

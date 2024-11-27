@@ -4,10 +4,6 @@
         "ParameterValue": "us-east-1"
     },
     {
-        "ParameterKey": "pAMIId",
-        "ParameterValue": "{{AMI_ID}}"
-    },
-    {
         "ParameterKey": "pInstanceType",
         "ParameterValue": "t2.micro"
     }
