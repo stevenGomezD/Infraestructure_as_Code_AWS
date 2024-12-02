@@ -67,31 +67,19 @@ jobs:
 
       - name: Deploy CloudFormation Template EC2
         run: |
-          # Replace AMI_ID in parameters-EC2.json
-          sed -i "s|\"ParameterValue\": \"\${{ secrets.AMI_ID }}\"|\"ParameterValue\": \"$AMI_ID\"|g" AWS_Cloudformation/parameters/parameters-EC2.json
-
-          # Deploy CloudFormation 
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/template-EC2.yaml \
             --stack-name Lab-EC2-Stack \
             --parameter-overrides file://AWS_Cloudformation/parameters/parameters-EC2.json \
             --capabilities CAPABILITY_NAMED_IAM
-        env:
-          AMI_ID: ${{ secrets.AMI_ID }}
 
       - name: Deploy CloudFormation Template RDS
         run: |
-          # Replace DB_PASSWORD in parameters-RDS.json
-          sed -i "s|\"ParameterValue\": \"\${{ secrets.DB_PASSWORD }}\"|\"ParameterValue\": \"$DB_PASSWORD\"|g" AWS_Cloudformation/parameters/parameters-RDS.json
-
-          # Deploy CloudFormation 
           aws cloudformation deploy \
             --template-file AWS_Cloudformation/templates/template-RDS.yaml \
             --stack-name Lab-RDS-Stack \
             --parameter-overrides file://AWS_Cloudformation/parameters/parameters-RDS.json \
             --capabilities CAPABILITY_NAMED_IAM
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Deploy CloudFormation Template S3
         run: |
