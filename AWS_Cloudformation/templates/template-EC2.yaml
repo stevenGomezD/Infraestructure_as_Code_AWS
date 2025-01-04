@@ -8,7 +8,11 @@ Parameters:
     
   pAMIId:
     Type: String
-    Description: Amazon Machine Image ID 
+    Description: Amazon Machine Image ID
+  
+  pRoleName:
+    Type: String
+    Description: Name of IAM Role
     
   pInstanceType:
     Type: String
@@ -26,7 +30,7 @@ Resources:
   rEC2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: IAM_Role_InstanceProfile
+      RoleName: !Ref pRoleName
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -63,7 +67,7 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref rEC2InstanceRole
+        - !Ref pRoleName
 
   # ALB
   rApplicationLoadBalancer:
@@ -105,7 +109,10 @@ Resources:
         ImageId: !Ref pAMIId
         InstanceType: !Ref pInstanceType
         IamInstanceProfile:
-          Arn: !Ref rEC2InstanceProfile
+          Arn: !GetAtt
+            - rEC2InstanceProfile
+            - Arn
+        DisableApiTermination: true
         NetworkInterfaces:
           - AssociatePublicIpAddress: true
             DeviceIndex: 0

@@ -8,6 +8,10 @@
         "ParameterValue": "ami-0583d8c7a9c35822c"
     },
     {
+        "ParameterKey": "pRoleName",
+        "ParameterValue": "IAM_Role_InstanceProfile"
+    },
+    {
         "ParameterKey": "pInstanceType",
         "ParameterValue": "t2.micro"
     }
