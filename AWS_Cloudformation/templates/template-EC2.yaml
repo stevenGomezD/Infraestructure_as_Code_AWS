@@ -26,42 +26,6 @@ Parameters:
       - m5.large
 
 Resources:
-  # IAM Role 
-  rEC2InstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Ref pRoleName
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: EC2ServicePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:ListBucket
-                  - s3:GetObject
-                  - s3:PutObject
-                Resource: arn:aws:s3:::*
-              - Effect: Allow
-                Action:
-                  - rds:DescribeDBInstances
-                  - rds:ListTagsForResource
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - lambda:InvokeFunction
-                Resource: "*"
-      Tags:
-        - Key: Environment
-          Value: dev
-
   # InstanceProfile
   rEC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
