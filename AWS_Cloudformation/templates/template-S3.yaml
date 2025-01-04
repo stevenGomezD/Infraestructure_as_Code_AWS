@@ -11,6 +11,7 @@ Parameters:
     Description: Alias para la clave KMS.
 
 Resources:
+  # KMS
   rKmsKey:
     Type: AWS::KMS::Key
     Properties:
@@ -37,12 +38,14 @@ Resources:
               - "kms:DescribeKey"
             Resource: "*"
 
+  # KMS Alias
   MyKmsAlias:
     Type: AWS::KMS::Alias
     Properties:
       AliasName: !Ref pKmsKeyAlias
       TargetKeyId: !Ref rKmsKey
 
+  # S3 Bucket
   rS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -58,6 +61,7 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  # S3 Bucket Policy
   rS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:

@@ -22,6 +22,7 @@ Parameters:
       - m5.large
 
 Resources:
+  # IAM Role 
   rEC2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -57,12 +58,14 @@ Resources:
         - Key: Environment
           Value: dev
 
+  # InstanceProfile
   rEC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
         - !Ref rEC2InstanceRole
 
+  # ALB
   rApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -77,6 +80,7 @@ Resources:
       SecurityGroups:
         - !Ref rALBSecurityGroup
 
+  # SG of ALB
   rALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -93,6 +97,7 @@ Resources:
           ToPort: 0
           CidrIp: 0.0.0.0/0
 
+  # LaunchTemplate (ASG)
   rLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -108,6 +113,7 @@ Resources:
               - !Ref rEC2InstanceSecurityGroup
       LaunchTemplateName: LaunchTemplateAutoscalingInstances
 
+  # SG of ASG Instances
   rEC2InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -124,6 +130,7 @@ Resources:
           ToPort: 0
           CidrIp: 0.0.0.0/0
 
+  # Instances ASG
   rAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -141,6 +148,7 @@ Resources:
       TargetGroupARNs:
         - !Ref rTargetGroup
 
+  # ELB TargetGroup
   rTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
