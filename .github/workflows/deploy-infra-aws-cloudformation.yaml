@@ -1,10 +1,15 @@
 name: Deploy AWS Infrastructure - Cloudformation
 
+# Trigger: cambios nuevos en las siguientes ramas
+# on:
+#   push:
+#     branches:
+#       - main
+#       - task/*
+
+# Trigger: ejecución manual del Pipeline
 on:
-  push:
-    branches:
-      - main
-      - task/*
+  workflow_dispatch: 
 
 jobs:
   # Stage: Validate templates
