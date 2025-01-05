@@ -80,7 +80,8 @@ Resources:
       MasterUsername: !Ref pDBUsername
       MasterUserPassword: !Ref pDBPassword
       DBName: !Ref pDBName
-      VPCSecurityGroups: !Ref rRDSSecurityGroup
+      VPCSecurityGroups: 
+        - !Ref rRDSSecurityGroup
       DBSubnetGroupName: !Ref rRDSDBSubnetGroup
       MultiAZ: true
       StorageEncrypted: true
