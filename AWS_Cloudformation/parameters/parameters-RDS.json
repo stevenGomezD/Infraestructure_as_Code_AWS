@@ -13,7 +13,7 @@
     },
     {
         "ParameterKey": "pDBPassword",
-        "ParameterValue": "${{ secrets.DB_PASSWORD }}"
+        "ParameterValue": "admin"
     },
     {
         "ParameterKey": "pDBInstanceClass",
