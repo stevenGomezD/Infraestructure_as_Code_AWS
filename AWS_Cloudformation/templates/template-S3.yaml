@@ -29,7 +29,7 @@ Resources:
           - Sid: AllowBucketAccess
             Effect: Allow
             Principal:
-              AWS: !ImportValue oInstanceProfile
+              AWS: !ImportValue oIAMRoleARN
             Action:
               - "kms:Encrypt"
               - "kms:Decrypt"
