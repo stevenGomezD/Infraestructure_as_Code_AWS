@@ -98,6 +98,6 @@ Outputs:
 
   oRDSInstanceArn:
     Description: ARN of instance RDS.
-    Value: !GetAtt rRDSInstance.Arn
+    Value: !GetAtt rRDSInstance.DBInstanceArn
     Export:
       Name: oRDSInstanceArn
